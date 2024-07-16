@@ -19,29 +19,29 @@ public class JDBCRunner {
         try (Connection connection = DriverManager.getConnection(DATABASE_URL, USER_NAME, DATABASE_PASS)) {
 
 
-//            addNewOwner(connection, "Александр", "Киселев", 34, new Date(90, 2, 21));
-//            addNewCar(connection, "volkswagen", "green", 380, new Date(21, 4, 11), 4, "ур123к");
-//            addNewRequest(connection, new Date(124, 6, 15), "Прокол колеса", 3, 8);
+            addNewOwner(connection, "Александр", "Киселев", 34, new Date(90, 2, 21));
+            addNewCar(connection, "volkswagen", "green", 380, new Date(21, 4, 11), 4, "ур123к");
+            addNewRequest(connection, new Date(124, 6, 15), "Прокол колеса", 3, 8);
 
 
-//            deleteOwner(connection, 3);
-//            deleteCar(connection, 8);
-//            deleteRequest(connection,7);
-//            deleteRequest(connection, 6);
+            deleteOwner(connection, 3);
+            deleteCar(connection, 8);
+            deleteRequest(connection,7);
+            deleteRequest(connection, 6);
 
 
-//            updateInfoOwner(connection, 3, 54);
-//            updateInfoCar(connection, 6, "yellow", 210);
-//            updateInfoRequest(connection, 5, "Прокол колеса");
-//
-//            getRequests(connection);
-//            getOwners(connection); System.out.println();
-//            getCars(connection);
+            updateInfoOwner(connection, 3, 54);
+            updateInfoCar(connection, 6, "yellow", 210);
+            updateInfoRequest(connection, 5, "Прокол колеса");
 
-//            getOwnersAndCars(connection, 10);
-//            getOwnersAndRequest(connection, 10);
+            getRequests(connection);
+            getOwners(connection); System.out.println();
+            getCars(connection);
 
-//            getSortInfoOwners(connection);
+            getOwnersAndCars(connection, 10);
+            getOwnersAndRequest(connection, 10);
+
+            getSortInfoOwners(connection);
 
 
 
@@ -311,7 +311,6 @@ public class JDBCRunner {
             System.out.println(param0 + " | " + param1 + " | " + param2 + " | " + param3 + " | " + param4);
         }
     }
-
 
 
 }
