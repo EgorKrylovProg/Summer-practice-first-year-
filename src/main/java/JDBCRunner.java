@@ -19,29 +19,38 @@ public class JDBCRunner {
         try (Connection connection = DriverManager.getConnection(DATABASE_URL, USER_NAME, DATABASE_PASS)) {
 
 
-            addNewOwner(connection, "Александр", "Киселев", 34, new Date(90, 2, 21));
-            addNewCar(connection, "volkswagen", "green", 380, new Date(21, 4, 11), 4, "ур123к");
-            addNewRequest(connection, new Date(124, 6, 15), "Прокол колеса", 3, 8);
+            addNewOwner(connection, "Иван", "Иванов", 44, new Date(80, 3, 23));
+            addNewOwner(connection, "Александр", "Киселев", 33, new Date(91, 3, 23));
+            addNewCar(connection, "Skoda", "Black", 180, new Date(120, 5, 12), 12, "e103кв");
+            addNewCar(connection, "Volkswagen", "Green", 380, new Date(123, 53 ,10), 13, "y117cв");
+//            addNewRequest(connection, new Date(124, 4, 10), "Ходовая", 6, 14);
 
 
-            deleteOwner(connection, 3);
-            deleteCar(connection, 8);
-            deleteRequest(connection,7);
-            deleteRequest(connection, 6);
+            getRequests(connection); System.out.println();
+            getOwners(connection); System.out.println();
+            getCars(connection);
 
+            updateInfoOwner(connection, "Иван", 45);
+            updateInfoCar(connection, "e103кв", "yellow", 210);
+//            updateInfoRequest(connection, 5, "Прокол колеса");
 
-            updateInfoOwner(connection, 3, 54);
-            updateInfoCar(connection, 6, "yellow", 210);
-            updateInfoRequest(connection, 5, "Прокол колеса");
-
-            getRequests(connection);
+            getRequests(connection); System.out.println();
             getOwners(connection); System.out.println();
             getCars(connection);
 
             getOwnersAndCars(connection, 10);
+
             getOwnersAndRequest(connection, 10);
 
             getSortInfoOwners(connection);
+
+            getCarsAndRequests(connection, 20);
+
+            deleteOwner(connection, "Иван");
+            deleteOwner(connection, "Александр");
+            deleteCar(connection, "e103кв");
+            deleteCar(connection, "y117cв");
+//            deleteRequest(connection, 11);
 
 
 
@@ -185,12 +194,12 @@ public class JDBCRunner {
 
     }
 
-    static void updateInfoOwner (Connection connection, int id, int newOld) throws SQLException {
-        if (id < 0 || newOld < 0) return;
+    static void updateInfoOwner (Connection connection, String name, int newOld) throws SQLException {
+        if (name == null || name.isBlank() || newOld < 0) return;
 
-        PreparedStatement statement = connection.prepareStatement("UPDATE owner SET old=? WHERE id=?;");
+        PreparedStatement statement = connection.prepareStatement("UPDATE owner SET old=? WHERE name=?;");
         statement.setInt(1, newOld);
-        statement.setInt(2, id);
+        statement.setString(2, name);
 
         int count = statement.executeUpdate();
 
@@ -198,13 +207,13 @@ public class JDBCRunner {
 
     }
 
-    static void updateInfoCar (Connection connection, int id, String newColor, int newHorsepower) throws SQLException {
-        if (id < 0 || newHorsepower < 0 || newColor == null || newColor.isBlank()) return;
+    static void updateInfoCar (Connection connection, String numberCar, String newColor, int newHorsepower) throws SQLException {
+        if (numberCar == null || numberCar.isBlank() || newHorsepower < 0 || newColor == null || newColor.isBlank()) return;
 
-        PreparedStatement statement = connection.prepareStatement("UPDATE car SET color=?, horsepower=? WHERE id=?;");
+        PreparedStatement statement = connection.prepareStatement("UPDATE car SET color=?, horsepower=? WHERE number_car=?;");
         statement.setString(1, newColor);
         statement.setInt(2, newHorsepower);
-        statement.setInt(3, id);
+        statement.setString(3, numberCar);
 
         int count = statement.executeUpdate();
 
@@ -226,20 +235,20 @@ public class JDBCRunner {
     }
 
 
-    static void deleteCar(Connection connection, int id) throws SQLException {
+    static void deleteCar(Connection connection, String numberCar) throws SQLException {
 
-        PreparedStatement statement = connection.prepareStatement("DELETE FROM car WHERE id= ?");
-        statement.setInt(1, id);
+        PreparedStatement statement = connection.prepareStatement("DELETE FROM car WHERE number_car= ?");
+        statement.setString(1, numberCar);
 
         int count = statement.executeUpdate();
         System.out.println("DELETEd " + count + " cars");
 
     }
 
-    static void deleteOwner(Connection connection, int id) throws SQLException {
+    static void deleteOwner(Connection connection, String name) throws SQLException {
 
-        PreparedStatement statement = connection.prepareStatement("DELETE FROM owner WHERE id= ?");
-        statement.setInt(1, id);
+        PreparedStatement statement = connection.prepareStatement("DELETE FROM owner WHERE name= ?");
+        statement.setString(1, name);
 
         int count = statement.executeUpdate();
         System.out.println("DELETEd " + count + " owner");
@@ -292,6 +301,25 @@ public class JDBCRunner {
         }
 
     }
+
+    static void getCarsAndRequests (Connection connection, int id) throws SQLException {
+        if (id < 0) return;
+
+        PreparedStatement statement = connection.prepareStatement(
+                "SELECT car.number_car, requests.request_date FROM requests " +
+                        "RIGHT JOIN car " +
+                        "ON requests.car_id = car.id" +
+                        " WHERE car.id < ?");
+        statement.setInt(1, id);
+
+        ResultSet rs = statement.executeQuery();
+
+        while (rs.next()) {
+            System.out.println(rs.getString(1) + " | " + rs.getString(2));
+        }
+
+    }
+
 
     static void getSortInfoOwners (Connection connection) throws SQLException {
 
