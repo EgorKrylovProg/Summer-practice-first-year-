@@ -1,5 +1,6 @@
 import java.sql.*;
-import java.util.Scanner;
+
+
 
 public class JDBCRunner {
 
@@ -9,50 +10,41 @@ public class JDBCRunner {
 
     private static final String DATABASE_NAME = "CarService";
 
-    public static final String DATABASE_URL = PROTOCOL + URL_LOCALE_NAME + DATABASE_NAME;
+    public static final String DATABASE_URL = PROTOCOL + URL_LOCALE_NAME + "NewCarService";
     public static final String USER_NAME = "postgres";
     public static final String DATABASE_PASS = "postgres";
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+
+        checkDriver();
+        checkDB();
+        System.out.println(DATABASE_URL);
+
 
         try (Connection connection = DriverManager.getConnection(DATABASE_URL, USER_NAME, DATABASE_PASS)) {
 
+            addNewCustomer(connection, "Михаил", "Пирогов", 28, new Date(96, 3, 3));
 
-            addNewOwner(connection, "Иван", "Иванов", 44, new Date(80, 3, 23));
-            addNewOwner(connection, "Александр", "Киселев", 33, new Date(91, 3, 23));
-            addNewCar(connection, "Skoda", "Black", 180, new Date(120, 5, 12), 12, "e103кв");
-            addNewCar(connection, "Volkswagen", "Green", 380, new Date(123, 53 ,10), 13, "y117cв");
-//            addNewRequest(connection, new Date(124, 4, 10), "Ходовая", 6, 14);
+            addNewCar(connection, "Nissan", "Gray", 150, new Date(118, 8, 19), 15, "B276KU178");
+
+            addNewApplication(connection, new Timestamp(124, 10, 1, 16, 28, 17, 43), "Замена масла в коробке", 15, 6);
+
+            updateInfoCustomer(connection, 11, 46);
+            updateInfoCar(connection, "B888PM888", "green", 900);
+            updateInfoApplication(connection, 2, "Разбито лобовое стекло");
 
 
-            getRequests(connection); System.out.println();
-            getOwners(connection); System.out.println();
+            getSortInfoCustomers(connection);
+            System.out.println();
             getCars(connection);
+            System.out.println();
+            getApplications(connection);
 
-            updateInfoOwner(connection, "Иван", 45);
-            updateInfoCar(connection, "e103кв", "yellow", 210);
-//            updateInfoRequest(connection, 5, "Прокол колеса");
+            getCarsAndApplications(connection, "B321YT190");
+            getCustomersAndCars(connection, 7);
+            getCustomersAndApplications(connection, 10);
 
-            getRequests(connection); System.out.println();
-            getOwners(connection); System.out.println();
-            getCars(connection);
-
-            getOwnersAndCars(connection, 10);
-
-            getOwnersAndRequest(connection, 10);
-
-            getSortInfoOwners(connection);
-
-            getCarsAndRequests(connection, 20);
-
-            deleteOwner(connection, "Иван");
-            deleteOwner(connection, "Александр");
-            deleteCar(connection, "e103кв");
-            deleteCar(connection, "y117cв");
-//            deleteRequest(connection, 11);
-
-
+            deleteApplication(connection, 3);
 
 
 
@@ -63,61 +55,80 @@ public class JDBCRunner {
         }
     }
 
-    static void getOwners (Connection connection) throws SQLException {
+    public static void checkDriver () {
+        try {
+            Class.forName(DRIVER);
+        } catch (ClassNotFoundException e) {
+            System.out.println("Нет JDBC-драйвера! Подключите JDBC-драйвер к проекту согласно инструкции.");
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void checkDB () {
+        try {
+            Connection connection = DriverManager.getConnection(DATABASE_URL, USER_NAME, DATABASE_PASS);
+        } catch (SQLException e) {
+            System.out.println("Нет базы данных! Проверьте имя базы, путь к базе или разверните локально резервную копию согласно инструкции");
+            throw new RuntimeException(e);
+        }
+    }
+
+    static void getCustomers(Connection connection) throws SQLException {
 
         int param0 = -1, param3 = -1;
         String param1 = null, param2 = null;
         Date param4 = null;
 
         Statement statement = connection.createStatement();
-        ResultSet rs = statement.executeQuery("SELECT * FROM owner;");
+        ResultSet rs = statement.executeQuery("SELECT * FROM customers;");
 
         while (rs.next()) {
-            param0 = rs.getInt(1);
-            param1 = rs.getString(2);
-            param2 = rs.getString(3);
-            param3 = rs.getInt(4);
-            param4 = rs.getDate(5);
+            param0 = rs.getInt("id");
+            param1 = rs.getString("name");
+            param2 = rs.getString("surname");
+            param3 = rs.getInt("age");
+            param4 = rs.getDate("birth_date");
             System.out.println(param0 + " | " + param1 + " | " + param2 + " | " + param3 + " | " + param4);
         }
     }
 
     static void getCars (Connection connection) throws SQLException {
 
-        int param0 = -1, param2 = -1, param4 = -1;
-        String param1 = null, param5 = null, param6 = null;
-        Date param3 = null;
+        int param0 = -1,param3 = -1, param6 = -1;
+        String param1 = null, param2 = null, param5 = null;
+        Date param4 = null;
+
 
         Statement statement = connection.createStatement();
-        ResultSet rs = statement.executeQuery("SELECT * FROM car;");
+        ResultSet rs = statement.executeQuery("SELECT * FROM cars;");
 
         while (rs.next()) {
-            param0 = rs.getInt(1);
-            param1 = rs.getString(2);
-            param2 = rs.getInt(3);
-            param3 = rs.getDate(4);
-            param4 = rs.getInt(5);
-            param5 = rs.getString(6);
-            param6 = rs.getString(7);
+            param0 = rs.getInt("id");
+            param1 = rs.getString("manufacturer");
+            param2 = rs.getString("color");
+            param3 = rs.getInt("horsepower");
+            param4 = rs.getDate("date_production");
+            param5 = rs.getString("number_car");
+            param6 = rs.getInt("customer_id");
             System.out.println(param0 + " | " + param1 + " | " + param2 + " | " + param3 + " | " + param4 + " | " + param5 + " | " + param6);
         }
     }
 
-    static void getRequests (Connection connection) throws SQLException {
+    static void getApplications (Connection connection) throws SQLException {
 
         int param0 = -1, param3 = -1, param4 = -1;
         String param2 = null;
-        Date param1 = null;
+        Timestamp param1 = null;
 
         Statement statement = connection.createStatement();
-        ResultSet rs = statement.executeQuery("SELECT * FROM requests;");
+        ResultSet rs = statement.executeQuery("SELECT * FROM applications;");
 
         while (rs.next()) {
-            param0 = rs.getInt(1);
-            param1 = rs.getDate(2);
-            param2 = rs.getString(3);
-            param3 = rs.getInt(4);
-            param4 = rs.getInt(5);
+            param0 = rs.getInt("id");
+            param1 = rs.getTimestamp("date_applications");
+            param2 = rs.getString("breakdown");
+            param3 = rs.getInt("customer_id");
+            param4 = rs.getInt("car_id");
 
             System.out.println(param0 + " | " + param1 + " | " + param2 + " | " + param3 + " | " + param4);
         }
@@ -125,40 +136,40 @@ public class JDBCRunner {
 
 
 
-    static void addNewOwner (Connection connection, String name, String surname, int old, Date birthDate) throws SQLException {
-        if (name == null || name.isBlank() || surname == null || surname.isBlank() || old < 0 || birthDate == null) return;
+    static void addNewCustomer(Connection connection, String name, String surname, int age, Date birthDate) throws SQLException {
+        if (name == null || name.isBlank() || surname == null || surname.isBlank() || age < 0 || birthDate == null) return;
 
         PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO owner(name, surname, old, birth_date) VALUES (?, ?, ?, ?);");
+                "INSERT INTO customers(name, surname, age, birth_date) VALUES (?, ?, ?, ?) RETURNING id;", Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, name);
         statement.setString(2, surname);
-        statement.setInt(3, old);
+        statement.setInt(3, age);
         statement.setDate(4, birthDate);
 
         int count = statement.executeUpdate();
 
         ResultSet rs = statement.getGeneratedKeys();
         if (rs.next()) {
-            System.out.println("Идентификатор владельца " + rs.getInt(1));
+            System.out.println("Идентификатор клиента " + rs.getInt("id"));
             System.out.println();
         }
 
-        System.out.println("INSERTed " + count + " owner");
+        System.out.println("INSERTed " + count + " customer");
 
     }
 
 
-    static void addNewCar (Connection connection, String brand, String color, int horsepower, Date dateRelease, int ownerId, String numberCar) throws SQLException {
-        if (brand == null || brand.isBlank() || color == null || color.isBlank() || horsepower < 0 || dateRelease == null || numberCar == null || numberCar.isBlank()) return;
+    static void addNewCar (Connection connection, String manufacturer, String color, int horsepower, Date date_production, int customerId, String numberCar) throws SQLException {
+        if (manufacturer == null || manufacturer.isBlank() || color == null || color.isBlank() || horsepower < 0 || date_production == null || numberCar == null || numberCar.isBlank()) return;
 
         PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO car(color, horsepower, date_release, owner_id, brand, number_car) VALUES (?, ?, ?, ?, ?, ?);");
-        statement.setString(5, brand);
-        statement.setString(1, color);
-        statement.setInt(2, horsepower);
-        statement.setDate(3, dateRelease);
-        statement.setInt(4, ownerId);
-        statement.setString(6, numberCar);
+                "INSERT INTO cars(manufacturer, color, horsepower, date_production, number_car, customer_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING id;", Statement.RETURN_GENERATED_KEYS);
+        statement.setString(1, manufacturer);
+        statement.setString(2, color);
+        statement.setInt(3, horsepower);
+        statement.setDate(4, date_production);
+        statement.setInt(6, customerId);
+        statement.setString(5, numberCar);
 
         int count = statement.executeUpdate();
 
@@ -172,45 +183,44 @@ public class JDBCRunner {
 
     }
 
-    static void addNewRequest (Connection connection, Date requestDate, String breakdown, int ownerId, int carId) throws SQLException {
-        if (requestDate == null || breakdown == null || breakdown.isBlank() || ownerId < 0 || carId < 0) return;
+    static void addNewApplication(Connection connection, Timestamp dateApplication, String breakdown, int customerId, int carId) throws SQLException {
+        if (dateApplication == null || breakdown == null || breakdown.isBlank() || customerId < 0 || carId < 0) return;
 
         PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO requests(request_date, breakdown, owner_id, car_id) VALUES (?, ?, ?, ?);");
-        statement.setDate(1, requestDate);
+                "INSERT INTO applications(date_applications, breakdown, customer_id, car_id) VALUES (?, ?, ?, ?);");
+        statement.setTimestamp(1, dateApplication);
         statement.setString(2, breakdown);
-        statement.setInt(3, ownerId);
+        statement.setInt(3, customerId);
         statement.setInt(4, carId);
 
         int count = statement.executeUpdate();
 
         ResultSet rs = statement.getGeneratedKeys();
         if (rs.next()) {
-            System.out.println("Идентификатор запроса " + rs.getInt(1));
+            System.out.println("Идентификатор обращения " + rs.getInt(1));
             System.out.println();
         }
 
-        System.out.println("INSERTed " + count + " request");
+        System.out.println("INSERTed " + count + " applications");
 
     }
 
-    static void updateInfoOwner (Connection connection, String name, int newOld) throws SQLException {
-        if (name == null || name.isBlank() || newOld < 0) return;
+    static void updateInfoCustomer(Connection connection, int id, int newAge) throws SQLException {
 
-        PreparedStatement statement = connection.prepareStatement("UPDATE owner SET old=? WHERE name=?;");
-        statement.setInt(1, newOld);
-        statement.setString(2, name);
+        PreparedStatement statement = connection.prepareStatement("UPDATE customers SET age=? WHERE id=?;");
+        statement.setInt(1, newAge);
+        statement.setInt(2, id);
 
         int count = statement.executeUpdate();
 
-        System.out.println("UPDATEd " + count + " owners");
+        System.out.println("UPDATEd " + count + " customer");
 
     }
 
     static void updateInfoCar (Connection connection, String numberCar, String newColor, int newHorsepower) throws SQLException {
         if (numberCar == null || numberCar.isBlank() || newHorsepower < 0 || newColor == null || newColor.isBlank()) return;
 
-        PreparedStatement statement = connection.prepareStatement("UPDATE car SET color=?, horsepower=? WHERE number_car=?;");
+        PreparedStatement statement = connection.prepareStatement("UPDATE cars SET color=?, horsepower=? WHERE number_car=?;");
         statement.setString(1, newColor);
         statement.setInt(2, newHorsepower);
         statement.setString(3, numberCar);
@@ -221,10 +231,10 @@ public class JDBCRunner {
 
     }
 
-    static void updateInfoRequest (Connection connection, int id, String breakdown) throws SQLException {
+    static void updateInfoApplication(Connection connection, int id, String breakdown) throws SQLException {
         if (id < 0 || breakdown == null || breakdown.isBlank()) return;
 
-        PreparedStatement statement = connection.prepareStatement("UPDATE requests SET breakdown=? WHERE id=?;");
+        PreparedStatement statement = connection.prepareStatement("UPDATE applications SET breakdown=? WHERE id=?;");
         statement.setString(1, breakdown);
         statement.setInt(2, id);
 
@@ -237,7 +247,7 @@ public class JDBCRunner {
 
     static void deleteCar(Connection connection, String numberCar) throws SQLException {
 
-        PreparedStatement statement = connection.prepareStatement("DELETE FROM car WHERE number_car= ?");
+        PreparedStatement statement = connection.prepareStatement("DELETE FROM cars WHERE number_car= ?");
         statement.setString(1, numberCar);
 
         int count = statement.executeUpdate();
@@ -245,34 +255,34 @@ public class JDBCRunner {
 
     }
 
-    static void deleteOwner(Connection connection, String name) throws SQLException {
+    static void deleteCustomer(Connection connection, int id) throws SQLException {
 
-        PreparedStatement statement = connection.prepareStatement("DELETE FROM owner WHERE name= ?");
-        statement.setString(1, name);
-
-        int count = statement.executeUpdate();
-        System.out.println("DELETEd " + count + " owner");
-
-    }
-
-    static void deleteRequest(Connection connection, int id) throws SQLException {
-
-        PreparedStatement statement = connection.prepareStatement("DELETE FROM requests WHERE id= ?");
+        PreparedStatement statement = connection.prepareStatement("DELETE FROM customers WHERE id= ?");
         statement.setInt(1, id);
 
         int count = statement.executeUpdate();
-        System.out.println("DELETEd " + count + " request");
+        System.out.println("DELETEd " + count + " customer");
 
     }
 
-    static void getOwnersAndCars (Connection connection, int id) throws SQLException {
+    static void deleteApplication(Connection connection, int id) throws SQLException {
+
+        PreparedStatement statement = connection.prepareStatement("DELETE FROM applications WHERE id= ?");
+        statement.setInt(1, id);
+
+        int count = statement.executeUpdate();
+        System.out.println("DELETEd " + count + " application");
+
+    }
+
+    static void getCustomersAndCars(Connection connection, int id) throws SQLException {
         if (id < 0) return;
 
         PreparedStatement statement = connection.prepareStatement(
-                "SELECT owner.name || ' ' || owner.surname AS full_name, car.number_car FROM owner " +
-                        "JOIN car " +
-                        "ON owner.id=car.owner_id" +
-                        " WHERE owner.id = ?");
+                "SELECT customers.name || ' ' || customers.surname AS full_name, cars.number_car FROM customers " +
+                        "JOIN cars " +
+                        "ON customers.id=cars.customer_id" +
+                        " WHERE customers.id = ?");
         statement.setInt(1, id);
 
         ResultSet rs = statement.executeQuery();
@@ -284,14 +294,14 @@ public class JDBCRunner {
     }
 
 
-    static void getOwnersAndRequest (Connection connection, int id) throws SQLException {
+    static void getCustomersAndApplications(Connection connection, int id) throws SQLException {
         if (id < 0) return;
 
         PreparedStatement statement = connection.prepareStatement(
-                "SELECT owner.name || ' ' || owner.surname AS full_name, requests.request_date FROM owner " +
-                        "LEFT JOIN requests " +
-                        "ON owner.id = requests.owner_id" +
-                        " WHERE owner.id < ?");
+                "SELECT customers.name || ' ' || customers.surname AS full_name, applications.date_applications FROM customers " +
+                        "LEFT JOIN applications " +
+                        "ON customers.id = applications.customer_id" +
+                        " WHERE customers.id < ?");
         statement.setInt(1, id);
 
         ResultSet rs = statement.executeQuery();
@@ -302,33 +312,32 @@ public class JDBCRunner {
 
     }
 
-    static void getCarsAndRequests (Connection connection, int id) throws SQLException {
-        if (id < 0) return;
+    static void getCarsAndApplications(Connection connection, String numberCar) throws SQLException {
 
         PreparedStatement statement = connection.prepareStatement(
-                "SELECT car.number_car, requests.request_date FROM requests " +
-                        "RIGHT JOIN car " +
-                        "ON requests.car_id = car.id" +
-                        " WHERE car.id < ?");
-        statement.setInt(1, id);
+                "SELECT applications.breakdown FROM applications " +
+                        "JOIN cars " +
+                        "ON applications.car_id = cars.id" +
+                        " WHERE cars.number_car = ?");
+        statement.setString(1, numberCar);
 
         ResultSet rs = statement.executeQuery();
 
         while (rs.next()) {
-            System.out.println(rs.getString(1) + " | " + rs.getString(2));
+            System.out.println(rs.getString(1) );
         }
 
     }
 
 
-    static void getSortInfoOwners (Connection connection) throws SQLException {
+    static void getSortInfoCustomers(Connection connection) throws SQLException {
 
         int param0 = -1, param3 = -1;
         String param1 = null, param2 = null;
         Date param4 = null;
 
         Statement statement = connection.createStatement();
-        ResultSet rs = statement.executeQuery("SELECT * FROM owner ORDER BY name;");
+        ResultSet rs = statement.executeQuery("SELECT * FROM customers ORDER BY name;");
 
         while (rs.next()) {
             param0 = rs.getInt(1);
@@ -339,6 +348,5 @@ public class JDBCRunner {
             System.out.println(param0 + " | " + param1 + " | " + param2 + " | " + param3 + " | " + param4);
         }
     }
-
 
 }
